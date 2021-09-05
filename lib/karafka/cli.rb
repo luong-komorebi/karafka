@@ -35,7 +35,7 @@ module Karafka
   end
 end
 
-# This is kinda trick - since we don't have an autoload and other magic stuff
+# This is kinda tricky - since we don't have an autoload and other magic stuff
 # like Rails does, so instead this method allows us to replace currently running
 # console with a new one via Kernel.exec. It will start console with new code loaded
 # Yes, we know that it is not turbo fast, however it is turbo convenient and small
