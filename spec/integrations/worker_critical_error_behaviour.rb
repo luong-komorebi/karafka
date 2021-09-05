@@ -24,7 +24,7 @@ SuperException = Class.new(Exception)
 
 Karafka.monitor.subscribe(Listener.new)
 
-numbers = Array.new(5) { rand.to_s }
+elements = Array.new(5) { SecureRandom.uuid }
 
 class Consumer < Karafka::BaseConsumer
   def consume
@@ -40,7 +40,7 @@ Karafka::App.consumer_groups.draw do
   end
 end
 
-numbers.each { |data| produce(DataCollector.topic, data) }
+elements.each { |data| produce(DataCollector.topic, data) }
 
 raised = false
 

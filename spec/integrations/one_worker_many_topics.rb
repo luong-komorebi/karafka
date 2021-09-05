@@ -40,8 +40,8 @@ Karafka::App.consumer_groups.draw do
   end
 end
 
-10.times { produce(topic1, rand.to_s) }
-10.times { produce(topic2, rand.to_s) }
+10.times { produce(topic1, SecureRandom.uuid) }
+10.times { produce(topic2, SecureRandom.uuid) }
 
 start_karafka_and_wait_until do
   DataCollector.data.values.flatten.size >= 20

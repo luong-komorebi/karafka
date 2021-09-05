@@ -11,7 +11,7 @@ setup_karafka do |config|
   config.manual_offset_management = true
 end
 
-numbers = Array.new(100) { rand.to_s }
+elements = Array.new(100) { SecureRandom.uuid }
 
 class Consumer < Karafka::BaseConsumer
   def consume
@@ -38,13 +38,13 @@ Karafka::App.consumer_groups.draw do
   end
 end
 
-numbers.each { |data| produce(DataCollector.topic, data) }
+elements.each { |data| produce(DataCollector.topic, data) }
 
 start_karafka_and_wait_until do
   DataCollector.data[0].size >= 125
 end
 
 # We need unique as due to error and manual offset, some will be duplicated
-assert_equal numbers, DataCollector.data[0].uniq
+assert_equal elements, DataCollector.data[0].uniq
 assert_equal 125, DataCollector.data[0].size
 assert_equal 1, DataCollector.data.size

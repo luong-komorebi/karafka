@@ -9,8 +9,8 @@ setup_karafka do |config|
   config.kafka['auto.offset.reset'] = 'latest'
 end
 
-before = Array.new(10) { rand.to_s }
-after = Array.new(10) { rand.to_s }
+before = Array.new(10) { SecureRandom.uuid }
+after = Array.new(10) { SecureRandom.uuid }
 
 # Sends some messages before starting Karafka - those should not be received
 before.each { |number| produce(DataCollector.topic, number) }

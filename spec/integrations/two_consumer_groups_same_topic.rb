@@ -7,7 +7,7 @@ require ROOT_PATH.join('spec/integrations_helper.rb')
 
 setup_karafka
 
-jsons = Array.new(100) { { rand.to_s => rand.to_s } }
+jsons = Array.new(100) { { SecureRandom.uuid => rand.to_s } }
 
 class Consumer < Karafka::BaseConsumer
   def consume

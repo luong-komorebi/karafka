@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Karafka should use more than one thread to consume independent topics partitions
+# Karafka should use more than one thread to consume independent topics
 
 ROOT_PATH = Pathname.new(File.expand_path(File.join(File.dirname(__FILE__), '../../')))
 require ROOT_PATH.join('spec/integrations_helper.rb')
@@ -28,7 +28,7 @@ Karafka::App.consumer_groups.draw do
         consumer Consumer
       end
 
-      10.times { produce(topic_name, rand.to_s) }
+      10.times { produce(topic_name, SecureRandom.uuid) }
     end
   end
 end

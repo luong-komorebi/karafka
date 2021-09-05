@@ -9,8 +9,8 @@ setup_karafka
 
 topic1 = DataCollector.topics[0]
 topic2 = DataCollector.topics[1]
-topic1_data = Array.new(10) { { rand.to_s => rand.to_s } }
-topic2_data = Array.new(10) { { rand.to_s => rand.to_s } }
+topic1_data = Array.new(10) { { SecureRandom.uuid => rand.to_s } }
+topic2_data = Array.new(10) { { SecureRandom.uuid => rand.to_s } }
 
 class Consumer1 < Karafka::BaseConsumer
   def consume

@@ -7,7 +7,7 @@ require ROOT_PATH.join('spec/integrations_helper.rb')
 
 setup_karafka
 
-numbers = Array.new(100) { rand.to_s }
+elements = Array.new(100) { SecureRandom.uuid }
 
 class Consumer < Karafka::BaseConsumer
   def consume
@@ -30,14 +30,9 @@ Thread.new do
   Karafka::App.stop!
 end
 
-numbers.each do |number|
-  Karafka::App.producer.produce_async(
-    topic: DataCollector.topic,
-    payload: number
-  )
-end
+elements.each { |data| produce(DataCollector.topic, data) }
 
 Karafka::Server.run
 
-assert_equal numbers, DataCollector.data[0]
+assert_equal elements, DataCollector.data[0]
 assert_equal 1, DataCollector.data.size

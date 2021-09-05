@@ -1,13 +1,22 @@
 # frozen_string_literal: true
 
-# Karafka should be able to recover from non-critical error with same consumer instance
+# Karafka should be able to recover from non-critical error with same consumer instance and it
+# also should emit an event with error details that can be logged
 
 ROOT_PATH = Pathname.new(File.expand_path(File.join(File.dirname(__FILE__), '../../')))
 require ROOT_PATH.join('spec/integrations_helper.rb')
 
+class Listener
+  def on_consumer_consume_error(event)
+    DataCollector.data[:error] << event
+  end
+end
+
+Karafka.monitor.subscribe(Listener.new)
+
 setup_karafka
 
-numbers = Array.new(5) { rand.to_s }
+elements = Array.new(5) { SecureRandom.uuid }
 
 class Consumer < Karafka::BaseConsumer
   def consume
@@ -29,7 +38,7 @@ Karafka::App.consumer_groups.draw do
   end
 end
 
-numbers.each { |data| produce(DataCollector.topic, data) }
+elements.each { |data| produce(DataCollector.topic, data) }
 
 start_karafka_and_wait_until do
   # We have 5 messages but we retry thus it needs to be minimum 6
@@ -38,4 +47,5 @@ end
 
 assert_equal true, DataCollector.data[0].size >= 6
 assert_equal 1, DataCollector.data[1].uniq.size
+assert_equal StandardError, DataCollector.data[:error].first[:error].class
 assert_equal 5, DataCollector.data[0].uniq.size

@@ -7,7 +7,7 @@ require ROOT_PATH.join('spec/integrations_helper.rb')
 
 setup_karafka
 
-numbers = Array.new(10) { rand.to_s }
+elements = Array.new(10) { SecureRandom.uuid }
 
 class Consumer < Karafka::BaseConsumer
   def consume
@@ -25,7 +25,7 @@ Karafka::App.consumer_groups.draw do
   end
 end
 
-numbers.each { |number| produce(DataCollector.topic, number) }
+elements.each { |number| produce(DataCollector.topic, number) }
 
 start_karafka_and_wait_until do
   DataCollector.data[0].size >= 10
