@@ -7,14 +7,15 @@ require ROOT_PATH.join('spec/integrations_helper.rb')
 
 setup_karafka { |config| config.shutdown_timeout = 1_000 }
 
+produce(DataCollector.topic, '1')
+
 class Consumer < Karafka::BaseConsumer
   def consume
+    DataCollector.data[0] << true
     # This will "fake" a hanging job
     sleep
   end
 end
-
-produce(DataCollector.topic, '1')
 
 Karafka::App.consumer_groups.draw do
   consumer_group DataCollector.consumer_group do
@@ -25,8 +26,7 @@ Karafka::App.consumer_groups.draw do
 end
 
 start_karafka_and_wait_until do
-  sleep(5)
-  true
+  !DataCollector.data[0].empty?
 end
 
 # No assertions here, as we are interested in the exit code 2 - that will indicate a force close
