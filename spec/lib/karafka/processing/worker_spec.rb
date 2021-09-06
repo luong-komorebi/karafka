@@ -15,6 +15,15 @@ RSpec.describe_current do
     it { expect { worker.join }.not_to raise_error }
   end
 
+  describe '#terminate' do
+    it 'expect to kill the underlying thread' do
+      expect(worker.alive?).to eq(true)
+      worker.terminate
+      worker.join
+      expect(worker.alive?).to eq(false)
+    end
+  end
+
   describe '#process' do
     before { allow(queue).to receive(:complete) }
 
