@@ -34,4 +34,9 @@ start_karafka_and_wait_until do
   end
 end
 
+# This sleep is not a problem. Since Karafka runs in a background thread and in this scenario is
+# suppose to exit with 2 from a different thread, we just block it so Karafka has time to actually
+# end the process as expected
+sleep
+
 # No assertions here, as we are interested in the exit code 2 - that will indicate a force close

@@ -76,6 +76,7 @@ module Karafka
 
         # We're done waiting, lets kill them!
         consumer_threads.each(&:terminate)
+        consumer_threads.each(&:join)
 
         # exit! is not within the instrumentation as it would not trigger due to exit
         Kernel.exit! FORCEFUL_EXIT_CODE
