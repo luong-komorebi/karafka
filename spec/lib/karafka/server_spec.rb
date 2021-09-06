@@ -113,7 +113,7 @@ RSpec.describe_current do
       end
 
       context 'when there are active threads (processing too long)' do
-        let(:active_thread) { instance_double(Thread, alive?: true, terminate: true) }
+        let(:active_thread) { instance_double(Thread, alive?: true, terminate: true, join: true) }
 
         before do
           described_class.consumer_threads << active_thread
