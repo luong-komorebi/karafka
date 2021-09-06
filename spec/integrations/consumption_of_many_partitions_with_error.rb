@@ -26,12 +26,16 @@ class Consumer < Karafka::BaseConsumer
 
     raise StandardError if @count == 1 && messages.first.partition == 5
   end
+
+  def on_shutdown
+    mark_as_consumed!(messages.last)
+  end
 end
 
 Karafka::App.consumer_groups.draw do
   consumer_group DataCollector.consumer_group do
     # Special topic with 10 partitions available
-    topic 'part10' do
+    topic 'part10_0' do
       consumer Consumer
     end
   end
@@ -43,7 +47,7 @@ Thread.new { Karafka::Server.run }
 # Give it some time to boot and connect before dispatching messages
 sleep(5)
 
-10.times { |i| produce('part10', SecureRandom.uuid, partition: i) }
+10.times { |i| produce('part10_0', SecureRandom.uuid, partition: i) }
 
 wait_until do
   DataCollector.data.values.flatten.size >= 11
