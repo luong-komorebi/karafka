@@ -37,5 +37,4 @@ start_karafka_and_wait_until do
   DataCollector.data[0].size >= 10
 end
 
-assert_equal 11, DataCollector.data[0].size
-assert_equal 10, DataCollector.data[0].last
+assert_equal (0..10).to_a, DataCollector.data[0]
