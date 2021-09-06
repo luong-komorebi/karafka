@@ -11,7 +11,10 @@ produce(DataCollector.topic, 0.to_json)
 
 class Consumer < Karafka::BaseConsumer
   def consume
+
     messages.each do |message|
+      next if message.payload > 10
+
       producer.produce_sync(
         topic: DataCollector.topic,
         payload: (message.payload + 1).to_json
