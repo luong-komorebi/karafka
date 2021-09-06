@@ -13,7 +13,7 @@ class Consumer < Karafka::BaseConsumer
   def consume
     DataCollector.data[0] << true
     # This will "fake" a hanging job
-    sleep
+    sleep(100)
   end
 end
 
@@ -26,7 +26,12 @@ Karafka::App.consumer_groups.draw do
 end
 
 start_karafka_and_wait_until do
-  !DataCollector.data[0].empty?
+  if DataCollector.data[0].empty?
+    false
+  else
+    sleep 1
+    true
+  end
 end
 
 # No assertions here, as we are interested in the exit code 2 - that will indicate a force close
