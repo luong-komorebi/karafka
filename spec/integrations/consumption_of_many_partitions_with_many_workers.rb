@@ -41,7 +41,7 @@ Thread.new { Karafka::Server.run }
 # Give it some time to boot and connect before dispatching messages
 sleep(5)
 
-# We send only one message to each topic partiton, so when messages are consumed, it forces them
+# We send only one message to each topic partition, so when messages are consumed, it forces them
 # to be in separate worker threads
 10.times { |i| produce('part10_1', SecureRandom.uuid, partition: i) }
 
