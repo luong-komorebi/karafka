@@ -10,7 +10,7 @@ module Karafka
       # jobs across and one workers poll for that
       jobs_queue = Processing::JobsQueue.new
 
-      Processing::WorkersBatch.new(jobs_queue)
+      Karafka::Server.workers = Processing::WorkersBatch.new(jobs_queue)
 
       threads = listeners(jobs_queue).map do |listener|
         # We abort on exception because there should be an exception handling developed for
@@ -23,7 +23,8 @@ module Karafka
       end
 
       # We aggregate threads here for a supervised shutdown process
-      threads.each { |thread| Karafka::Server.consumer_threads << thread }
+      Karafka::Server.consumer_threads = threads
+
       threads.each(&:join)
     # If anything crashes here, we need to raise the error and crush the runner because it means
     # that something terrible happened

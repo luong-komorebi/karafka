@@ -3,8 +3,6 @@
 module Karafka
   # Karafka consuming server class
   class Server
-    @consumer_threads = Concurrent::Array.new
-
     # How long should we sleep between checks on shutting down consumers
     SUPERVISION_SLEEP = 0.1
     # What system exit code should we use when we terminated forcefully
@@ -18,6 +16,9 @@ module Karafka
     class << self
       # Set of consuming threads. Each consumer thread contains a single consumer
       attr_accessor :consumer_threads
+
+      # Set of workers
+      attr_accessor :workers
 
       # Writer for list of consumer groups that we want to consume in our current process context
       attr_writer :consumer_groups
@@ -52,7 +53,7 @@ module Karafka
       end
 
       # Stops Karafka with a supervision (as long as there is a shutdown timeout)
-      # If consumers won't stop in a given time frame, it will force them to exit
+      # If consumers or workers won't stop in a given time frame, it will force them to exit
       def stop
         Karafka::App.stop!
 
@@ -62,7 +63,8 @@ module Karafka
         # their work and if so, we can just return and normal shutdown process will take place
         # We divide it by 1000 because we use time in ms.
         ((timeout / 1_000) * SUPERVISION_CHECK_FACTOR).to_i.times do
-          if consumer_threads.count(&:alive?).zero?
+          if consumer_threads.count(&:alive?).zero? &&
+             workers.count(&:alive?).zero?
             Thread.new { Karafka.monitor.instrument('app.stopped') }.join
             return
           end
@@ -75,7 +77,9 @@ module Karafka
         Thread.new { Karafka.monitor.instrument('app.stopping.error', error: e) }.join
 
         # We're done waiting, lets kill them!
+        workers.each(&:terminate)
         consumer_threads.each(&:terminate)
+        workers.each(&:join)
         consumer_threads.each(&:join)
 
         # exit! is not within the instrumentation as it would not trigger due to exit

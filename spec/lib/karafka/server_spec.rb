@@ -10,6 +10,8 @@ RSpec.describe_current do
     allow(Karafka::App).to receive(:run!)
     allow(Karafka::Runner).to receive(:new).and_return(runner)
     allow(runner).to receive(:call)
+    described_class.consumer_threads = []
+    described_class.workers = []
   end
 
   describe '#run' do
@@ -85,6 +87,7 @@ RSpec.describe_current do
     after do
       server_class.stop
       described_class.consumer_threads.clear
+      described_class.workers = []
       # After shutdown we need to reinitialize the app for other specs
       Karafka::App.initialize!
     end
@@ -112,13 +115,29 @@ RSpec.describe_current do
         end
       end
 
-      context 'when there are active threads (processing too long)' do
+      context 'when there are active consuming threads (consuming does not want to stop)' do
         let(:active_thread) { instance_double(Thread, alive?: true, terminate: true, join: true) }
 
         before do
-          described_class.consumer_threads << active_thread
+          described_class.consumer_threads = [active_thread]
           server_class.stop
           described_class.consumer_threads.clear
+        end
+
+        it 'expect stop and exit with sleep' do
+          expect(Karafka::App).to have_received(:stop!)
+          expect(described_class).to have_received(:sleep).with(0.1).exactly(timeout_s * 10).times
+          expect(Kernel).to have_received(:exit!).with(2)
+        end
+      end
+
+      context 'when there are active processing workers (processing does not want to stop)' do
+        let(:active_thread) { instance_double(Thread, alive?: true, terminate: true, join: true) }
+
+        before do
+          described_class.workers = [active_thread]
+          server_class.stop
+          described_class.workers.clear
         end
 
         it 'expect stop and exit with sleep' do

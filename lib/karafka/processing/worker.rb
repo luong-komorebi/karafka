@@ -5,6 +5,10 @@ module Karafka
     # Workers are used to run jobs in separate threads.
     # Workers are the main processing units of the Karafka framework.
     class Worker
+      extend Forwardable
+
+      def_delegators :@thread, :join, :terminate, :alive?
+
       # @param jobs_queue [JobsQueue]
       # @return [Worker]
       def initialize(jobs_queue)
@@ -15,11 +19,6 @@ module Karafka
           @thread.abort_on_exception = true
           loop { break unless process }
         end
-      end
-
-      # Waits for the underlying thread to stop.
-      def join
-        @thread.join
       end
 
       private
