@@ -46,6 +46,7 @@ specs = ARGV[0] || 'spec/integrations/**/*.rb'
 # Randomize order
 Dir[ROOT_PATH.join(specs)].shuffle.each do |integration_test|
   pid = fork do
+    puts "Starting #{integration_test}"
     exec("bundle exec ruby #{integration_test}")
   end
 

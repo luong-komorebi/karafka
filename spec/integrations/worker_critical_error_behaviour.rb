@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Karafka should not recover from critical errors that happened in the workers while consuming
-# jobs. Those should be handled by the users and the worker with the process should abort.
+# Karafka should recover from critical errors that happened in the workers while consuming
+# jobs. It should notify on a proper channel and do other stuff
 #
 # @note This test is a bit special as due to how Karafka operates, when unexpected issue happens
 #   in particular moments, it can bubble up and exit 2
@@ -11,7 +11,6 @@ require ROOT_PATH.join('spec/integrations_helper.rb')
 
 setup_karafka do |config|
   config.concurrency = 1
-  config.shutdown_timeout = 1_000
 end
 
 class Listener
@@ -53,5 +52,5 @@ rescue SuperException
   raised = true
 end
 
-assert_equal true, raised
+assert_equal false, raised
 assert_equal 1, DataCollector.data[0].size

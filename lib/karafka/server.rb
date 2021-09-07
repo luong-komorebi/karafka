@@ -30,7 +30,9 @@ module Karafka
         process.on_sigterm { stop }
         start
       # Try its best to shutdown underlying components before re-raising
+      # rubocop:disable Lint/RescueException
       rescue Exception => e
+      # rubocop:enable Lint/RescueException
         stop
 
         raise e
@@ -65,7 +67,14 @@ module Karafka
         ((timeout / 1_000) * SUPERVISION_CHECK_FACTOR).to_i.times do
           if consumer_threads.count(&:alive?).zero? &&
              workers.count(&:alive?).zero?
-            Thread.new { Karafka.monitor.instrument('app.stopped') }.join
+
+            thread = Thread.new do
+              Karafka::App.producer.close
+              Karafka.monitor.instrument('app.stopped')
+            end
+
+            thread.join
+
             return
           end
 
@@ -74,19 +83,22 @@ module Karafka
 
         raise Errors::ForcefulShutdownError
       rescue Errors::ForcefulShutdownError => e
-        Thread.new { Karafka.monitor.instrument('app.stopping.error', error: e) }.join
+        thread = Thread.new do
+          Karafka.monitor.instrument('app.stopping.error', error: e)
 
-        # We're done waiting, lets kill them!
-        workers.each(&:terminate)
-        consumer_threads.each(&:terminate)
-        workers.each(&:join)
-        consumer_threads.each(&:join)
+          # We're done waiting, lets kill them!
+          workers.each(&:terminate)
+          consumer_threads.each(&:terminate)
+          workers.each(&:join)
+          consumer_threads.each(&:join)
+
+          Karafka::App.producer.close
+        end
+
+        thread.join
 
         # exit! is not within the instrumentation as it would not trigger due to exit
         Kernel.exit! FORCEFUL_EXIT_CODE
-      ensure
-        # Always try to close the producer, without it we may have a segmentation fault
-        Karafka::App.producer.close
       end
 
       private

@@ -38,12 +38,9 @@ module Karafka
         else
           false
         end
-      # We signal critical exceptions and let the worker fail.
-      # Critical means critical and should be handled by the framework users
+      # We signal critical exceptions, notify and do not allow worker to fail
       rescue Exception => e
         Karafka.monitor.instrument('worker.process.error', caller: self, error: e)
-
-        raise e
       ensure
         # job can be nil when the queue is being closed
         @jobs_queue.complete(job) if job
